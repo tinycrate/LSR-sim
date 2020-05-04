@@ -1,0 +1,14 @@
+# Ignore local workspace propertices
+/.idea/*
+
+# Keep necessary xml configuration
+!/.idea/misc.xml
+!/.idea/gradle.xml
+!/.idea/inspectionProfiles/
+!/.idea/runConfigurations/
+!/.idea/artifacts/
+
+# Ignore build path
+/build
+/out
+
