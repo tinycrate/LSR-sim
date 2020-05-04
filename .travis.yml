@@ -1,0 +1,13 @@
+dist: xenial
+language: java
+jdk: openjdk8
+
+before_install:
+  - chmod +x gradlew
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+env:
+  global:
+    - CODECOV_TOKEN= #{{ secrets.CODECOV_TOKEN }}
