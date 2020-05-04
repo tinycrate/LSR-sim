@@ -1,0 +1,81 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'jacoco'
+}
+
+group 'comp4322.project'
+version '1.0'
+mainClassName = 'Application'
+
+// Mininum and target Java version
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+// Project dependencies
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// Add necessary attributes into /MEDA-INF/MANIFEST.MF
+jar {
+    manifest {
+        attributes('Main-Class': mainClassName)
+    }
+}
+
+
+// Use custom project structure instead of Maven style
+// /                        | Project root
+// ├ src/                   | Source code folder
+// ├ resources/             | Resource folder
+// ├ test/                  | Test code folder
+// └ test-resources/        | Test resource folder
+//
+sourceSets {
+    main {
+        java { srcDirs = ['src'] }
+        resources { srcDirs = ['resources'] }
+    }
+    test {
+        java { srcDirs = ['test'] }
+        resources { srcDirs = ['test-resources'] }
+    }
+}
+
+// Jacoco configuretion
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+// Configure jacoco to generate coverage report
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        csv.enabled = true
+    }
+}
+
+test {
+    jacoco {
+        destinationFile = file("${buildDir}/jacoco/jacocoTest.exec")
+        classDumpDir = file("${buildDir}/jacoco/classpathdumps")
+    }
+}
+
+check.dependsOn jacocoTestReport
+
+// Force javac to compile with UTF-8 encoding
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// Force javadoc output UTF-8 website
+javadoc {
+    options.encoding = 'UTF-8'
+}
