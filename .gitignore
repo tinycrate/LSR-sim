@@ -4,11 +4,13 @@
 # Keep necessary xml configuration
 !/.idea/misc.xml
 !/.idea/gradle.xml
+!/.idea/modules.xml
 !/.idea/inspectionProfiles/
 !/.idea/runConfigurations/
 !/.idea/artifacts/
+!/.idea/libraries/
 
 # Ignore build path
 /build
 /out
-
+/.gradle
