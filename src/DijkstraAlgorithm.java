@@ -9,6 +9,7 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
     private final Graph graph;
     private final String sourceNode;
+    private Iterator<VisitedNodeInfo> _iterator;
 
     /**
      * Use Dijkstra's algorithm with graph and a source node
@@ -27,7 +28,11 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
     @Override
     public Iterator<VisitedNodeInfo> iterator() {
-        return new NodeChainIterator();
+        // Lazy load this single use iterator
+        if (_iterator == null) {
+            _iterator = new NodeChainIterator();
+        }
+        return _iterator;
     }
 
     /**
