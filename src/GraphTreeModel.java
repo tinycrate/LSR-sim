@@ -160,6 +160,10 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    public boolean hasLink(String nodeA, String nodeB) {
+        return graph.hasEdge(nodeA, nodeB);
+    }
+
     public boolean saveFile(String path) {
         try {
             FileWriter writer = new FileWriter(path);

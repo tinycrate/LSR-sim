@@ -1,16 +1,12 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public class MainView extends JFrame {
 
@@ -19,6 +15,7 @@ public class MainView extends JFrame {
     private JComboBox<String> sourceSelection;
     private GraphTreeModel graphModel;
     private JTree topologyTree;
+    private HashSet<String> expandedNode = new HashSet<>();
 
     private Button addNodeBtn;
     private Button addLinkBtn;
@@ -106,6 +103,25 @@ public class MainView extends JFrame {
             public void treeStructureChanged(TreeModelEvent e) {
                 addLinkBtn.setEnabled(false);
                 removeBtn.setEnabled(false);
+                refreshSourceSelection();
+                restoreTreeExpansion();
+            }
+        });
+        topologyTree.addTreeExpansionListener(new TreeExpansionListener() {
+            @Override
+            public void treeExpanded(TreeExpansionEvent event) {
+                Object object = event.getPath().getLastPathComponent();
+                if (object instanceof GraphTreeModel.Node) {
+                    expandedNode.add(((GraphTreeModel.Node) object).name);
+                }
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                Object object = event.getPath().getLastPathComponent();
+                if (object instanceof GraphTreeModel.Node) {
+                    expandedNode.remove(((GraphTreeModel.Node) object).name);
+                }
             }
         });
 
@@ -114,6 +130,15 @@ public class MainView extends JFrame {
         graphPanel.add(buttonPanel, BorderLayout.SOUTH);
         graphPanel.setPreferredSize(new Dimension(130, 250));
         return graphPanel;
+    }
+
+    private void restoreTreeExpansion() {
+        for (int i = 0; i < topologyTree.getRowCount(); i++) {
+            Object object = topologyTree.getPathForRow(i).getLastPathComponent();
+            if (object instanceof GraphTreeModel.Node && expandedNode.contains(((GraphTreeModel.Node) object).name)) {
+                topologyTree.expandRow(i);
+            }
+        }
     }
 
     private JPanel buildGraphOptionPanel() {
@@ -129,8 +154,8 @@ public class MainView extends JFrame {
         statusLbl.setBorder(new EmptyBorder(0, 0, 3, 0));
         bottomPanel.add(statusLbl, BorderLayout.NORTH);
         bottomPanel.add(status, BorderLayout.CENTER);
-        Button loadBtn = new Button("Load File");
-        Button saveBtn = new Button("Save File");
+        Button loadBtn = new Button("Load File...");
+        Button saveBtn = new Button("Save File...");
         loadBtn.addActionListener(this::onLoadFileClicked);
         saveBtn.addActionListener(this::onSaveFileClicked);
         graphIOPanel.add(loadBtn);
@@ -203,17 +228,16 @@ public class MainView extends JFrame {
         }
     }
 
-    private void onAddLinkClicked(ActionEvent e) {
-    }
-
     private void onRemoveClicked(ActionEvent e) {
         TreePath path = topologyTree.getSelectionPath();
         if (path == null) return;
         Object selected = path.getLastPathComponent();
         boolean successful = false;
         if (selected instanceof GraphTreeModel.Node) {
+            expandedNode.remove(path.toString());
             successful = graphModel.removeNode(((GraphTreeModel.Node) selected).name);
         } else if (selected instanceof GraphTreeModel.Edge) {
+            expandedNode.remove(path.toString());
             GraphTreeModel.Edge edge = (GraphTreeModel.Edge) selected;
             successful = graphModel.removeLink(edge.srcNodeName, edge.destNodeName);
         } else {
@@ -225,6 +249,74 @@ public class MainView extends JFrame {
                     null,
                     "The selected component cannot be removed",
                     "Remove Selected",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
+
+    private void onAddLinkClicked(ActionEvent e) {
+        TreePath path = topologyTree.getSelectionPath();
+        if (path == null) return;
+        Object selected = path.getLastPathComponent();
+        if (!(selected instanceof GraphTreeModel.Node)) return;
+        String srcNodeName = ((GraphTreeModel.Node) selected).name;
+        List<String> nodes = new ArrayList<>(
+                Arrays.asList(((GraphTreeModel.Root) graphModel.getRoot()).nodes)
+        );
+        nodes.remove(srcNodeName);
+        if (nodes.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "No nodes available to link!",
+                    "Create Link",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        JComboBox<String> destNodeSelection = new JComboBox<>(nodes.toArray(new String[0]));
+        JSpinner distanceSelection = new JSpinner(
+                new SpinnerNumberModel(1, 0, Integer.MAX_VALUE, 1)
+        );
+        final JComponent[] inputs = new JComponent[]{
+                new JLabel("Connect \"" + srcNodeName + "\" with: "),
+                destNodeSelection,
+                new JLabel("At a distance of:"),
+                distanceSelection
+        };
+        String destNodeName;
+        int distance;
+        while (true) {
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    inputs,
+                    "Create Link",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null);
+            if (!(result == JOptionPane.OK_OPTION)) return;
+            destNodeName = (String) destNodeSelection.getSelectedItem();
+            distance = ((Number) distanceSelection.getValue()).intValue();
+            if (graphModel.hasLink(srcNodeName, destNodeName)) {
+                int confirmResult = JOptionPane.showConfirmDialog(
+                        null,
+                        "Overwrite existing link " + srcNodeName + " <> "
+                                + destNodeName + "\nwith a distance of " + distance + "?",
+                        "Link Existed "+ srcNodeName + " <> "+ destNodeName,
+                        JOptionPane.YES_NO_OPTION);
+                if (confirmResult != JOptionPane.YES_OPTION) continue;
+            }
+            break;
+        }
+        if (destNodeName == null) return;
+        if (graphModel.addLink(srcNodeName, destNodeName, distance)) {
+            expandedNode.add(srcNodeName);
+            expandedNode.add(destNodeName);
+            restoreTreeExpansion();
+        } else {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "The specified link could not be created",
+                    "Create Link",
                     JOptionPane.ERROR_MESSAGE
             );
         }
@@ -256,6 +348,7 @@ public class MainView extends JFrame {
     }
 
     private void onResetClicked(ActionEvent e) {
+        restoreTreeExpansion();
     }
 
     private void onLoadFileClicked(ActionEvent e) {
@@ -277,9 +370,16 @@ public class MainView extends JFrame {
         }
     }
 
+    private void refreshSourceSelection() {
+        sourceSelection.setModel(new DefaultComboBoxModel<>(
+                ((GraphTreeModel.Root) graphModel.getRoot()).nodes
+        ));
+    }
+
     private void onComputeAllClicked(ActionEvent e) {
     }
 
     private void onSingleStepClicked(ActionEvent e) {
     }
+
 }
