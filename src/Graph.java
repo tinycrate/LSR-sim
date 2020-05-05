@@ -145,10 +145,9 @@ public class Graph {
     public Set<String> getIsolatedNodes() {
         Set<String> isoNodes = getAllNodes();
         for(String node : nodes.keySet()) {
-            if(nodes.get(node).isEmpty())
+            if(!nodes.get(node).isEmpty())
                 isoNodes.remove(node);
         }
-
         return isoNodes;
     }
 
