@@ -9,6 +9,7 @@ public class Application {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
-        return;
+        MainView view = new MainView();
+        view.init();
     }
 }
