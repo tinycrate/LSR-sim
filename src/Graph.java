@@ -41,7 +41,7 @@ public class Graph {
     public boolean removeNode(String node) {
         if (!hasNode(node)) return false;
 
-        for (String nodeLinked : nodes.get(node).keySet()) {
+        for (String nodeLinked : nodes.get(node).keySet().toArray(new String[0])) {
             unsetEdge(node, nodeLinked);
         }
         nodes.remove(node);
