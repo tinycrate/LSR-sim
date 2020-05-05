@@ -28,6 +28,7 @@ public class MainView extends JFrame {
         super();
         setTitle("LSR Simulator");
         addComponents();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
     public void init() {
