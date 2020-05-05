@@ -77,14 +77,14 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
          * <p>
          * Format in Key: TargetNode, Value: NodePair(PreviousNode, TotalDistance)
          */
-        private final Map<String, NodePair> chains;
+        private final Map<String, NodePair> map;
         private final Set<String> visitedNodes;
 
         private String currentNode;
 
         private NodeChainIterator() {
-            chains = new HashMap<>();
-            chains.put(sourceNode, new NodePair(sourceNode, 0));
+            map = new HashMap<>();
+            map.put(sourceNode, new NodePair(sourceNode, 0));
 
             visitedNodes = new HashSet<>();
             visitedNodes.add(sourceNode);
@@ -105,34 +105,38 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
             possibleNodes.removeAll(visitedNodes);
             for(String posNode: possibleNodes) {
-                int newDistance = chains.get(currentNode).getDistance() + graph.getDistance(currentNode, posNode);
-                if(!chains.containsKey(posNode) || chains.get(posNode).getDistance() > newDistance) {
-                    chains.put(posNode, new NodePair(currentNode, newDistance));
+                int newDistance = map.get(currentNode).getDistance() + graph.getDistance(currentNode, posNode);
+                if(!map.containsKey(posNode) || map.get(posNode).getDistance() > newDistance) {
+                    map.put(posNode, new NodePair(currentNode, newDistance));
                     newDiscoveredNodes.add(posNode);
                 }
             }
 
-            // Find the shortest path among the discovered nodes
-            String shortestNode = null;
-            Set<String> discoveredNodes = new HashSet<>(chains.keySet());
-            discoveredNodes.removeAll(visitedNodes);
-
-            int shortestDistance = Integer.MAX_VALUE;
-            for (String node : discoveredNodes) {
-                if (chains.get(node).getDistance() < shortestDistance) {
-                    shortestNode = node;
-                }
-            }
-
-            // Add the shortest node as (next) visited node
-            visitedNodes.add(shortestNode);
-
+            // Record down the current visiting node and newly discovered nodes
             VisitedNodeInfo vni = new VisitedNodeInfo(
                     currentNode,
                     sourceNode,
                     visitedNodes,
                     newDiscoveredNodes,
-                    chains);
+                    map);
+
+
+            // === Choosing the next node to be visited ===
+            // Find the shortest path among the discovered nodes
+            String shortestNode = null;
+            Set<String> discoveredNodes = new HashSet<>(map.keySet());
+            discoveredNodes.removeAll(visitedNodes);
+
+            int shortestDistance = Integer.MAX_VALUE;
+            for (String node : discoveredNodes) {
+                if (map.get(node).getDistance() < shortestDistance) {
+                    shortestNode = node;
+                    shortestDistance = map.get(shortestNode).getDistance();
+                }
+            }
+
+            // Add the shortest node as (next) visited node
+            visitedNodes.add(shortestNode);
 
             // change the current node to the next visited node
             currentNode = shortestNode;
