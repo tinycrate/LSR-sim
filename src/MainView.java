@@ -429,33 +429,9 @@ public class MainView extends JFrame {
         ));
     }
 
-    private void onComputeAllClicked(ActionEvent e) {
-
-    }
-
     private void onSingleStepClicked(ActionEvent e) {
         if (!computing) {
-            String sourceNode = (String) sourceSelection.getSelectedItem();
-            boolean invalid = false;
-            if (sourceNode != null) {
-                try {
-                    dijkstra = new DijkstraAlgorithm(graphModel.getGraph(), sourceNode);
-                } catch (IllegalArgumentException ex) {
-                    invalid = true;
-                    return;
-                }
-            } else {
-                invalid = true;
-            }
-            if (invalid) {
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Please select a valid source node",
-                        "Invalid Source Node",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
+            if (!tryInitCompute()) return;
             computeStep = 0;
             setComputing(true);
         }
@@ -480,6 +456,41 @@ public class MainView extends JFrame {
         } else {
             printFinalResult();
         }
+    }
+
+    private void onComputeAllClicked(ActionEvent e) {
+        if (!computing) {
+            if (!tryInitCompute()) return;
+        }
+        for (VisitedNodeInfo info : dijkstra) {
+            // For side effects only
+            assert true;
+        }
+        printFinalResult();
+    }
+
+    private boolean tryInitCompute() {
+        String sourceNode = (String) sourceSelection.getSelectedItem();
+        boolean invalid = false;
+        if (sourceNode != null) {
+            try {
+                dijkstra = new DijkstraAlgorithm(graphModel.getGraph(), sourceNode);
+            } catch (IllegalArgumentException ex) {
+                invalid = true;
+            }
+        } else {
+            invalid = true;
+        }
+        if (invalid) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Please select a valid source node",
+                    "Invalid Source Node",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return false;
+        }
+        return true;
     }
 
     private void printFinalResult() {
