@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A bidirectional Graph formed by nodes and edges.
+ */
 public class Graph {
 
     private Map<String, Map<String, Integer>> nodes;
@@ -133,6 +136,11 @@ public class Graph {
         return nodes.get(node).keySet();
     }
 
+    /**
+     * Turn the graph into String format.
+     * Usually the graph will be in LSA format.
+     * @return
+     */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -166,14 +174,15 @@ public class Graph {
             if (line.trim().isEmpty()) continue;
 
             String[] segment = line.split(" ");
-            graph.addNode(segment[0].substring(0, segment[0].length() - 1)); // Remove colon
+            String startNode = segment[0].substring(0, segment[0].length() - 1); // Remove colon
+            graph.addNode(startNode);
 
             for (int i = 1; i < segment.length; i++) {
                 String[] link = segment[i].split(":");
                 if(link.length != 2) throw new IOException("The LSA graph does not have a correct format.");
 
                 graph.addNode(link[0]);
-                graph.setEdge(segment[0], segment[i], Integer.parseInt(link[1]));
+                graph.setEdge(startNode, link[0], Integer.parseInt(link[1]));
             }
         }
         return graph;
