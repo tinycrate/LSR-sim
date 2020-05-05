@@ -42,7 +42,7 @@ public class Graph {
     public boolean removeNode(String node) {
         if (!hasNode(node)) return false;
 
-        for (String nodeLinked : nodes.get(node).keySet()) {
+        for (String nodeLinked : nodes.get(node).keySet().toArray(new String[0])) {
             unsetEdge(node, nodeLinked);
         }
         nodes.remove(node);
@@ -186,6 +186,7 @@ public class Graph {
                 graph.setEdge(startNode, link[0], Integer.parseInt(link[1]));
             }
         }
+        reader.close();
         return graph;
     }
 
