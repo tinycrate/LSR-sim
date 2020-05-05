@@ -185,6 +185,7 @@ public class Graph {
                 graph.setEdge(startNode, link[0], Integer.parseInt(link[1]));
             }
         }
+        reader.close();
         return graph;
     }
 
