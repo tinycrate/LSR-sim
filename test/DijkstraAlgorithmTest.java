@@ -11,10 +11,14 @@ public class DijkstraAlgorithmTest {
 
         DijkstraAlgorithm dAlgo = new DijkstraAlgorithm(graph, "t");
 
-        for(NodeChain chain : dAlgo) {
-            System.out.print("Destination " + chain.getTargetNode() + ": ");
-            System.out.print(chain.toString());
-            System.out.println(" Cost: " + chain.distance());
+        for(VisitedNodeInfo info : dAlgo) {
+            System.out.print("Destination " + info.getNewVisitedNode() + ": ");
+
+            for(String chain : info.getChain(info.getNewVisitedNode())) {
+                System.out.print(chain + " ");
+            }
+
+            System.out.println(" Cost: " + info.distance(info.getNewVisitedNode()));
         }
     }
 }

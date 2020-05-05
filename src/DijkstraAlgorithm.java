@@ -5,7 +5,7 @@ import java.util.*;
  * <p>
  * Graph are used to calculate the shortest path with Dijkstra's algorithm
  */
-public class DijkstraAlgorithm implements Iterable<NodeChain> {
+public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
     private final Graph graph;
     private final String sourceNode;
@@ -26,7 +26,7 @@ public class DijkstraAlgorithm implements Iterable<NodeChain> {
     }
 
     @Override
-    public Iterator<NodeChain> iterator() {
+    public Iterator<VisitedNodeInfo> iterator() {
         return new NodeChainIterator();
     }
 
@@ -70,72 +70,74 @@ public class DijkstraAlgorithm implements Iterable<NodeChain> {
     /**
      * Iterator for generating node chain
      */
-    private class NodeChainIterator implements Iterator<NodeChain> {
+    private class NodeChainIterator implements Iterator<VisitedNodeInfo> {
 
         /**
          * The chain of the path routed.
          * <p>
          * Format in Key: TargetNode, Value: NodePair(PreviousNode, TotalDistance)
          */
-        private Map<String, NodePair> chains;
-        private Set<String> toBeSearchNodes;
+        private final Map<String, NodePair> chains;
+        private final Set<String> visitedNodes;
+
+        private String currentNode;
 
         private NodeChainIterator() {
             chains = new HashMap<>();
             chains.put(sourceNode, new NodePair(sourceNode, 0));
 
-            toBeSearchNodes = graph.getAllNodes();
-            toBeSearchNodes.remove(sourceNode);
+            visitedNodes = new HashSet<>();
+            visitedNodes.add(sourceNode);
 
+            currentNode = sourceNode;
         }
 
         @Override
         public boolean hasNext() {
-            return !toBeSearchNodes.isEmpty();
+            return visitedNodes.size() != graph.getAllNodes().size();
         }
 
         @Override
-        public NodeChain next() {
-            Map<String, NodePair> possibleChains = new HashMap<>();
+        public VisitedNodeInfo next() {
+            // Discover next possible node
+            Set<String> newDiscoveredNodes = new HashSet<>();
+            Set<String> possibleNodes = graph.getEdgesOfNode(currentNode);
 
-            // List all the possible next node step
-            for(String sourceNode : chains.keySet()) {
-                Set<String> possibleEdges = graph.getEdgesOfNode(sourceNode);
-                possibleEdges.removeAll(chains.keySet());
-                for (String currentNode : possibleEdges) {
-                    int newDistance = chains.get(sourceNode).getDistance() + graph.getDistance(sourceNode, currentNode);
-
-                    if (!possibleChains.containsKey(currentNode) || possibleChains.get(currentNode).getDistance() > newDistance) {
-                        possibleChains.put(currentNode, new NodePair(sourceNode, newDistance));
-                    }
+            possibleNodes.removeAll(visitedNodes);
+            for(String posNode: possibleNodes) {
+                int newDistance = chains.get(currentNode).getDistance() + graph.getDistance(currentNode, posNode);
+                if(!chains.containsKey(posNode) || chains.get(posNode).getDistance() > newDistance) {
+                    chains.put(posNode, new NodePair(currentNode, newDistance));
+                    newDiscoveredNodes.add(posNode);
                 }
             }
 
-            // Find the shortest path among the possible path
+            // Find the shortest path among the discovered nodes
             String shortestNode = null;
+            Set<String> discoveredNodes = new HashSet<>(chains.keySet());
+            discoveredNodes.removeAll(visitedNodes);
+
             int shortestDistance = Integer.MAX_VALUE;
-            for(String currentNode : possibleChains.keySet()) {
-                if(possibleChains.get(currentNode).getDistance() < shortestDistance) {
-                    shortestNode = currentNode;
+            for (String node : discoveredNodes) {
+                if (chains.get(node).getDistance() < shortestDistance) {
+                    shortestNode = node;
                 }
             }
 
+            // Add the shortest node as (next) visited node
+            visitedNodes.add(shortestNode);
 
-            chains.put(shortestNode, possibleChains.get(shortestNode));
-            toBeSearchNodes.remove(shortestNode);
+            VisitedNodeInfo vni = new VisitedNodeInfo(
+                    currentNode,
+                    sourceNode,
+                    visitedNodes,
+                    newDiscoveredNodes,
+                    chains);
 
-            return generateChain(shortestNode);
+            // change the current node to the next visited node
+            currentNode = shortestNode;
+            return vni;
         }
 
-        private NodeChain generateChain(String target) {
-            List<NodePair> fullChain = new ArrayList<>();
-            fullChain.add(chains.get(target));
-
-            while (!fullChain.get(0).getNode().equals(sourceNode)) {
-                fullChain.add(0, chains.get(fullChain.get(0).getNode()));
-            }
-
-            return new NodeChain(target, fullChain);
-        }
     }
 }
