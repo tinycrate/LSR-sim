@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -122,7 +123,7 @@ public class Graph {
      * @return A set of nodes.
      */
     public Set<String> getAllNodes() {
-        return nodes.keySet();
+        return new HashSet(nodes.keySet());
     }
 
     /**
@@ -133,7 +134,7 @@ public class Graph {
      */
     public Set<String> getEdgesOfNode(String node) {
         if (!hasNode(node)) return null;
-        return nodes.get(node).keySet();
+        return new HashSet(nodes.get(node).keySet());
     }
 
     /**
