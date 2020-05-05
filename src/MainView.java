@@ -7,10 +7,13 @@ import java.awt.event.ActionEvent;
 public class MainView extends JFrame {
 
     private JPanel controlBar;
-    private JPanel graphControlPanel;
     private JPanel graphIOPanel;
     private JComboBox<String> sourceSelection;
     private JTree topologyTree;
+
+    private Button addNodeBtn;
+    private Button addLinkBtn;
+    private Button removeBtn;
 
     public MainView() {
         super();
@@ -24,26 +27,57 @@ public class MainView extends JFrame {
 
     private void addComponents() {
         controlBar = buildControlBar();
-        this.add(buildGraphPanel(), BorderLayout.WEST);
+        this.add(buildGraphEditorPanel(), BorderLayout.WEST);
         this.add(buildGraphOptionPanel(), BorderLayout.CENTER);
         this.add(controlBar, BorderLayout.SOUTH);
         pack();
     }
 
-    private JPanel buildGraphPanel() {
+    private JPanel buildGraphEditorPanel() {
         JPanel graphPanel = new JPanel(new BorderLayout());
+        JPanel editorPanel = new JPanel(new BorderLayout());
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
         graphPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        topologyTree = new JTree();
-        JLabel topologyLbl = new JLabel("Imported graph:");
+
+        /* The graph editor*/
+        topologyTree = new JTree(new GraphTreeModel(new Graph()));
+        topologyTree.setEditable(true);
+        JLabel topologyLbl = new JLabel("Editor:");
         topologyLbl.setBorder(new EmptyBorder(0, 0, 3, 0));
-        graphPanel.add(topologyLbl, BorderLayout.NORTH);
+        editorPanel.add(topologyLbl, BorderLayout.NORTH);
         JScrollPane topologyPane = new JScrollPane(
                 topologyTree,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
         );
         topologyPane.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
-        graphPanel.add(topologyPane, BorderLayout.CENTER);
+        editorPanel.add(topologyPane, BorderLayout.CENTER);
+
+        /* The buttons */
+        addNodeBtn = new Button("Add Node");
+        addLinkBtn = new Button("Add Link");
+        removeBtn = new Button("Remove Selected");
+        addNodeBtn.addActionListener(this::onAddNodeClicked);
+        addLinkBtn.addActionListener(this::onAddLinkClicked);
+        removeBtn.addActionListener(this::onRemoveClicked);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = 0.5;
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        buttonPanel.add(addNodeBtn, constraints);
+        constraints.gridx = 1;
+        constraints.gridy = 1;
+        buttonPanel.add(addLinkBtn, constraints);
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = 2;
+        constraints.weightx = 0;
+        buttonPanel.add(removeBtn, constraints);
+
+        /* Bindings */
+        graphPanel.add(editorPanel, BorderLayout.CENTER);
+        graphPanel.add(buttonPanel, BorderLayout.SOUTH);
         graphPanel.setPreferredSize(new Dimension(130, 250));
         return graphPanel;
     }
@@ -51,7 +85,6 @@ public class MainView extends JFrame {
     private JPanel buildGraphOptionPanel() {
         JPanel optionPanel = new JPanel(new BorderLayout());
         graphIOPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        graphControlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel upperPanel = new JPanel();
         upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.PAGE_AXIS));
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -64,21 +97,11 @@ public class MainView extends JFrame {
         bottomPanel.add(status, BorderLayout.CENTER);
         Button loadBtn = new Button("Load File");
         Button saveBtn = new Button("Save File");
-        Button addNodeBtn = new Button("Add Node");
-        Button addLinkBtn = new Button("Add Link");
-        Button removeBtn = new Button("Remove Selected");
         loadBtn.addActionListener(this::onLoadFileClicked);
         saveBtn.addActionListener(this::onSaveFileClicked);
-        addNodeBtn.addActionListener(this::onAddNodeClicked);
-        addLinkBtn.addActionListener(this::onAddLinkClicked);
-        removeBtn.addActionListener(this::onRemoveClicked);
         graphIOPanel.add(loadBtn);
         graphIOPanel.add(saveBtn);
-        graphControlPanel.add(addNodeBtn);
-        graphControlPanel.add(addLinkBtn);
-        graphControlPanel.add(removeBtn);
         upperPanel.add(graphIOPanel);
-        upperPanel.add(graphControlPanel);
         upperPanel.setBorder(new EmptyBorder(19,0,0,0));
         optionPanel.add(upperPanel, BorderLayout.NORTH);
         optionPanel.add(bottomPanel, BorderLayout.CENTER);
