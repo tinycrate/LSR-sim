@@ -97,20 +97,35 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
         private String currentNode;
 
+        /**
+         * Constructor of NodeChainIterator.
+         */
         private NodeChainIterator() {
             map = new HashMap<>();
             map.put(sourceNode, new NodePair(sourceNode, 0));
 
             visitedNodes = new HashSet<>();
+            visitedNodes.addAll(graph.getIsolatedNodes()); // Isolated nodes are useless in calculation
 
             currentNode = sourceNode;
         }
 
+        /**
+         * Call if there has next element.
+         *
+         * @return True if there has next element; otherwise false.
+         * @see java.util.Iterator
+         */
         @Override
         public boolean hasNext() {
             return visitedNodes.size() != graph.getAllNodes().size();
         }
 
+        /**
+         * Get next information of visited node.
+         *
+         * @return A Information class with visited node information.
+         */
         @Override
         public VisitedNodeInfo next() {
             visitedNodes.add(currentNode);
