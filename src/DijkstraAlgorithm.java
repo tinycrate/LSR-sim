@@ -87,7 +87,6 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
             map.put(sourceNode, new NodePair(sourceNode, 0));
 
             visitedNodes = new HashSet<>();
-            visitedNodes.add(sourceNode);
 
             currentNode = sourceNode;
         }
@@ -99,6 +98,8 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
         @Override
         public VisitedNodeInfo next() {
+            visitedNodes.add(currentNode);
+
             // Discover next possible node
             Set<String> newDiscoveredNodes = new HashSet<>();
             Set<String> possibleNodes = graph.getEdgesOfNode(currentNode);
@@ -134,9 +135,6 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
                     shortestDistance = map.get(shortestNode).getDistance();
                 }
             }
-
-            // Add the shortest node as (next) visited node
-            visitedNodes.add(shortestNode);
 
             // change the current node to the next visited node
             currentNode = shortestNode;
