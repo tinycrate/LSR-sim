@@ -20,6 +20,14 @@ public class MainView extends JFrame {
     private Button addNodeBtn;
     private Button addLinkBtn;
     private Button removeBtn;
+    private Button loadBtn;
+    private Button saveBtn;
+
+    private JTextArea statusArea;
+
+    private DijkstraAlgorithm dijkstra;
+    private int computeStep = 0;
+    private boolean computing = false;
 
     public MainView() {
         super();
@@ -138,7 +146,7 @@ public class MainView extends JFrame {
         /* Bindings */
         graphPanel.add(editorPanel, BorderLayout.CENTER);
         graphPanel.add(buttonPanel, BorderLayout.SOUTH);
-        graphPanel.setPreferredSize(new Dimension(130, 250));
+        graphPanel.setPreferredSize(new Dimension(130, 300));
         return graphPanel;
     }
 
@@ -157,15 +165,22 @@ public class MainView extends JFrame {
         JPanel upperPanel = new JPanel();
         upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.PAGE_AXIS));
         JPanel bottomPanel = new JPanel(new BorderLayout());
-        JTextArea status = new JTextArea(6, 28);
-        status.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
-        status.setEditable(false);
+        statusArea = new JTextArea(6, 28);
+        statusArea.setEditable(false);
+        statusArea.setFont(new Font("monospaced", Font.PLAIN, 12));
         JLabel statusLbl = new JLabel("Status");
         statusLbl.setBorder(new EmptyBorder(0, 0, 3, 0));
+        JScrollPane statusPane = new JScrollPane(
+                statusArea,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
+        statusPane.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
+        statusPane.setPreferredSize(new Dimension(400, 100));
         bottomPanel.add(statusLbl, BorderLayout.NORTH);
-        bottomPanel.add(status, BorderLayout.CENTER);
-        Button loadBtn = new Button("Load File...");
-        Button saveBtn = new Button("Save File...");
+        bottomPanel.add(statusPane, BorderLayout.CENTER);
+        loadBtn = new Button("Load File...");
+        saveBtn = new Button("Save File...");
         loadBtn.addActionListener(this::onLoadFileClicked);
         saveBtn.addActionListener(this::onSaveFileClicked);
         graphIOPanel.add(loadBtn);
@@ -211,6 +226,7 @@ public class MainView extends JFrame {
 
     private void onSelectTree(TreeSelectionEvent e) {
         addLinkBtn.setEnabled(false);
+        if (computing) return;
         if (e.getPath().getLastPathComponent() instanceof GraphTreeModel.Node) addLinkBtn.setEnabled(true);
         if (!(e.getPath().getLastPathComponent() instanceof GraphTreeModel.Root)) removeBtn.setEnabled(true);
     }
@@ -311,7 +327,7 @@ public class MainView extends JFrame {
                         null,
                         "Overwrite existing link " + srcNodeName + " <> "
                                 + destNodeName + "\nwith a distance of " + distance + "?",
-                        "Link Existed "+ srcNodeName + " <> "+ destNodeName,
+                        "Link Existed " + srcNodeName + " <> " + destNodeName,
                         JOptionPane.YES_NO_OPTION);
                 if (confirmResult != JOptionPane.YES_OPTION) continue;
             }
@@ -346,7 +362,17 @@ public class MainView extends JFrame {
                 JOptionPane.QUESTION_MESSAGE,
                 null);
         if (result == JOptionPane.OK_OPTION && !nodeName.getText().isEmpty()) {
-            if (!graphModel.addNode(nodeName.getText())) {
+            if (graphModel.addNode(nodeName.getText())) {
+                for (int i = 0; i < topologyTree.getRowCount(); i++) {
+                    Object object = topologyTree.getPathForRow(i).getLastPathComponent();
+                    if (object instanceof GraphTreeModel.Node && nodeName.getText().equals(
+                            ((GraphTreeModel.Node) object).name
+                    )) {
+                        topologyTree.setSelectionRow(i);
+                        topologyTree.scrollRowToVisible(i);
+                    }
+                }
+            } else {
                 JOptionPane.showMessageDialog(
                         null,
                         "The specified node has already existed",
@@ -358,7 +384,8 @@ public class MainView extends JFrame {
     }
 
     private void onResetClicked(ActionEvent e) {
-        restoreTreeExpansion();
+        dijkstra = null;
+        setComputing(false);
     }
 
     private void onLoadFileClicked(ActionEvent e) {
@@ -380,6 +407,22 @@ public class MainView extends JFrame {
         }
     }
 
+    private void setComputing(boolean enabled) {
+        if (enabled) {
+            addNodeBtn.setEnabled(false);
+            addLinkBtn.setEnabled(false);
+            removeBtn.setEnabled(false);
+            loadBtn.setEnabled(false);
+            saveBtn.setEnabled(false);
+        } else {
+            topologyTree.clearSelection();
+            loadBtn.setEnabled(true);
+            saveBtn.setEnabled(true);
+            addNodeBtn.setEnabled(true);
+        }
+        computing = enabled;
+    }
+
     private void refreshSourceSelection() {
         sourceSelection.setModel(new DefaultComboBoxModel<>(
                 ((GraphTreeModel.Root) graphModel.getRoot()).nodes
@@ -387,9 +430,73 @@ public class MainView extends JFrame {
     }
 
     private void onComputeAllClicked(ActionEvent e) {
+
     }
 
     private void onSingleStepClicked(ActionEvent e) {
+        if (!computing) {
+            String sourceNode = (String) sourceSelection.getSelectedItem();
+            boolean invalid = false;
+            if (sourceNode != null) {
+                try {
+                    dijkstra = new DijkstraAlgorithm(graphModel.getGraph(), sourceNode);
+                } catch (IllegalArgumentException ex) {
+                    invalid = true;
+                    return;
+                }
+            } else {
+                invalid = true;
+            }
+            if (invalid) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Please select a valid source node",
+                        "Invalid Source Node",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+            computeStep = 0;
+            setComputing(true);
+        }
+        Iterator<VisitedNodeInfo> iterator = dijkstra.iterator();
+        if (iterator.hasNext()) {
+            VisitedNodeInfo info = iterator.next();
+            StringBuilder status = new StringBuilder(statusArea.getText());
+            status.append(String.format("Single Step %d:\n    [Visiting node: %s]\n",
+                    computeStep,
+                    info.getNewVisitedNode()
+            ));
+            for (String node : info.getNewDiscoverNodes().toArray(new String[0])) {
+                status.append(String.format("    > Found %s: Path: %s Cost: %d\n",
+                        node,
+                        String.join(" > ", info.getChain(node)),
+                        info.distance(node)
+                ));
+            }
+            status.append("\n");
+            statusArea.setText(status.toString());
+            computeStep++;
+        } else {
+            printFinalResult();
+        }
+    }
+
+    private void printFinalResult() {
+        VisitedNodeInfo info = dijkstra.getFinalResult();
+        StringBuilder status = new StringBuilder(statusArea.getText());
+        status.append("=================\n");
+        status.append("  Summary Table  \n");
+        status.append("=================\n");
+        status.append(String.format("Source %s:\n", info.getSourceNode()));
+        statusArea.setText(status.toString());
+        if (computing) setComputing(false);
+        JOptionPane.showMessageDialog(
+                null,
+                "All paths computed!",
+                "Simulation completed",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
 }

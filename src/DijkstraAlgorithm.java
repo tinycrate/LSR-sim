@@ -9,6 +9,8 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
     private final Graph graph;
     private final String sourceNode;
+    private VisitedNodeInfo finalResult;
+    private Iterator<VisitedNodeInfo> _iterator;
 
     /**
      * Use Dijkstra's algorithm with graph and a source node
@@ -27,7 +29,20 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
     @Override
     public Iterator<VisitedNodeInfo> iterator() {
-        return new NodeChainIterator();
+        // Lazy load this single use iterator
+        if (_iterator == null) {
+            _iterator = new NodeChainIterator();
+        }
+        return _iterator;
+    }
+
+    /**
+     * Gets the final state of the iterator once all nodes are computed
+     *
+     * @return the final result
+     */
+    public VisitedNodeInfo getFinalResult() {
+        return finalResult;
     }
 
     /**
@@ -105,9 +120,9 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
             Set<String> possibleNodes = graph.getEdgesOfNode(currentNode);
 
             possibleNodes.removeAll(visitedNodes);
-            for(String posNode: possibleNodes) {
+            for (String posNode : possibleNodes) {
                 int newDistance = map.get(currentNode).getDistance() + graph.getDistance(currentNode, posNode);
-                if(!map.containsKey(posNode) || map.get(posNode).getDistance() > newDistance) {
+                if (!map.containsKey(posNode) || map.get(posNode).getDistance() > newDistance) {
                     map.put(posNode, new NodePair(currentNode, newDistance));
                     newDiscoveredNodes.add(posNode);
                 }
@@ -117,8 +132,8 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
             VisitedNodeInfo vni = new VisitedNodeInfo(
                     currentNode,
                     sourceNode,
-                    visitedNodes,
-                    newDiscoveredNodes,
+                    new HashSet<>(visitedNodes),
+                    new HashSet<>(newDiscoveredNodes),
                     map);
 
 
@@ -138,6 +153,8 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
 
             // change the current node to the next visited node
             currentNode = shortestNode;
+
+            if (!hasNext()) finalResult = vni;
             return vni;
         }
 

@@ -185,6 +185,15 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Never modify this graph structure
+     *
+     * @return The internal Graph structure
+     */
+    public Graph getGraph () {
+        return graph;
+    }
+
     private void onTreeStructuredChanged() {
         TreeModelEvent e = new TreeModelEvent(this, new Object[]{getRoot()});
         for (TreeModelListener listener : treeModelListeners) {
