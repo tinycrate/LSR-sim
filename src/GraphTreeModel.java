@@ -185,6 +185,11 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    public void clearGraph() {
+        graph = new Graph();
+        onTreeStructuredChanged();
+    }
+
     /**
      * Never modify this graph structure
      *

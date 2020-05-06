@@ -20,6 +20,7 @@ public class MainView extends JFrame {
     private Button removeBtn;
     private Button loadBtn;
     private Button saveBtn;
+    private Button clearBtn;
 
     private JTextArea statusArea;
 
@@ -179,10 +180,16 @@ public class MainView extends JFrame {
         bottomPanel.add(statusPane, BorderLayout.CENTER);
         loadBtn = new Button("Load File...");
         saveBtn = new Button("Save File...");
+        clearBtn = new Button("Clear Topology");
+        Button clearMsgBtn = new Button("Clear Status");
         loadBtn.addActionListener(this::onLoadFileClicked);
         saveBtn.addActionListener(this::onSaveFileClicked);
+        clearBtn.addActionListener(this::onClearClicked);
+        clearMsgBtn.addActionListener(this::onClearMsgClicked);
         graphIOPanel.add(loadBtn);
         graphIOPanel.add(saveBtn);
+        graphIOPanel.add(clearBtn);
+        graphIOPanel.add(clearMsgBtn);
         upperPanel.add(graphIOPanel);
         upperPanel.setBorder(new EmptyBorder(19, 0, 0, 0));
         optionPanel.add(upperPanel, BorderLayout.NORTH);
@@ -406,6 +413,16 @@ public class MainView extends JFrame {
         }
     }
 
+    private void onClearClicked(ActionEvent actionEvent) {
+        int confirmResult = JOptionPane.showConfirmDialog(
+                null,
+                "This will remove all links and nodes, continue?",
+                "Clear All",
+                JOptionPane.YES_NO_OPTION);
+        if (confirmResult != JOptionPane.YES_OPTION) return;
+        graphModel.clearGraph();
+    }
+
     private void setComputing(boolean enabled) {
         if (enabled) {
             addNodeBtn.setEnabled(false);
@@ -413,11 +430,13 @@ public class MainView extends JFrame {
             removeBtn.setEnabled(false);
             loadBtn.setEnabled(false);
             saveBtn.setEnabled(false);
+            clearBtn.setEnabled(false);
             sourceSelection.setEnabled(false);
         } else {
             topologyTree.clearSelection();
             loadBtn.setEnabled(true);
             saveBtn.setEnabled(true);
+            clearBtn.setEnabled(true);
             addNodeBtn.setEnabled(true);
             sourceSelection.setEnabled(true);
         }
@@ -492,6 +511,10 @@ public class MainView extends JFrame {
             return false;
         }
         return true;
+    }
+
+    private void onClearMsgClicked(ActionEvent actionEvent) {
+        statusArea.setText("");
     }
 
     private void printFinalResult() {
