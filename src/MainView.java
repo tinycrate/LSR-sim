@@ -10,8 +10,6 @@ import java.util.List;
 
 public class MainView extends JFrame {
 
-    private JPanel controlBar;
-    private JPanel graphIOPanel;
     private JComboBox<String> sourceSelection;
     private GraphTreeModel graphModel;
     private JTree topologyTree;
@@ -51,7 +49,7 @@ public class MainView extends JFrame {
     }
 
     private void addComponents() {
-        controlBar = buildControlBar();
+        JPanel controlBar = buildControlBar();
         this.add(buildGraphEditorPanel(), BorderLayout.WEST);
         this.add(buildGraphOptionPanel(), BorderLayout.CENTER);
         this.add(controlBar, BorderLayout.SOUTH);
@@ -161,7 +159,7 @@ public class MainView extends JFrame {
 
     private JPanel buildGraphOptionPanel() {
         JPanel optionPanel = new JPanel(new BorderLayout());
-        graphIOPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel graphIOPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel upperPanel = new JPanel();
         upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.PAGE_AXIS));
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -386,6 +384,7 @@ public class MainView extends JFrame {
     private void onResetClicked(ActionEvent e) {
         dijkstra = null;
         setComputing(false);
+        statusArea.setText(statusArea.getText() + "===== RESET ===== \n\n");
     }
 
     private void onLoadFileClicked(ActionEvent e) {
@@ -414,11 +413,13 @@ public class MainView extends JFrame {
             removeBtn.setEnabled(false);
             loadBtn.setEnabled(false);
             saveBtn.setEnabled(false);
+            sourceSelection.setEnabled(false);
         } else {
             topologyTree.clearSelection();
             loadBtn.setEnabled(true);
             saveBtn.setEnabled(true);
             addNodeBtn.setEnabled(true);
+            sourceSelection.setEnabled(true);
         }
         computing = enabled;
     }
@@ -500,6 +501,15 @@ public class MainView extends JFrame {
         status.append("  Summary Table  \n");
         status.append("=================\n");
         status.append(String.format("Source %s:\n", info.getSourceNode()));
+        for (String node : info.getAllVisitedNodes()) {
+            if (node.equals(info.getSourceNode())) continue;
+            status.append(String.format("    %s: Path: %s Cost: %d\n",
+                    node,
+                    String.join(" > ", info.getChain(node)),
+                    info.distance(node)
+            ));
+        }
+        status.append("\n");
         statusArea.setText(status.toString());
         if (computing) setComputing(false);
         JOptionPane.showMessageDialog(
