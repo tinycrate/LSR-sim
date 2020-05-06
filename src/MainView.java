@@ -343,6 +343,18 @@ public class MainView extends JFrame {
             expandedNode.add(srcNodeName);
             expandedNode.add(destNodeName);
             restoreTreeExpansion();
+            for (int i = 0; i < topologyTree.getRowCount(); i++) {
+                Object object = topologyTree.getPathForRow(i).getLastPathComponent();
+                if (object instanceof GraphTreeModel.Edge) {
+                    GraphTreeModel.Edge edge = (GraphTreeModel.Edge) object;
+                    if (!edge.srcNodeName.equals(srcNodeName)) continue;
+                    if (!edge.destNodeName.equals(destNodeName)) continue;
+                    if (edge.distance != distance) continue;
+                    topologyTree.setSelectionRow(i);
+                    topologyTree.scrollRowToVisible(i);
+                    break;
+                }
+            }
         } else {
             JOptionPane.showMessageDialog(
                     null,
