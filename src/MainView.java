@@ -10,8 +10,6 @@ import java.util.List;
 
 public class MainView extends JFrame {
 
-    private JPanel controlBar;
-    private JPanel graphIOPanel;
     private JComboBox<String> sourceSelection;
     private GraphTreeModel graphModel;
     private JTree topologyTree;
@@ -51,7 +49,7 @@ public class MainView extends JFrame {
     }
 
     private void addComponents() {
-        controlBar = buildControlBar();
+        JPanel controlBar = buildControlBar();
         this.add(buildGraphEditorPanel(), BorderLayout.WEST);
         this.add(buildGraphOptionPanel(), BorderLayout.CENTER);
         this.add(controlBar, BorderLayout.SOUTH);
@@ -161,7 +159,7 @@ public class MainView extends JFrame {
 
     private JPanel buildGraphOptionPanel() {
         JPanel optionPanel = new JPanel(new BorderLayout());
-        graphIOPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel graphIOPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel upperPanel = new JPanel();
         upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.PAGE_AXIS));
         JPanel bottomPanel = new JPanel(new BorderLayout());
