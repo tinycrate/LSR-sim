@@ -1,21 +1,34 @@
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * This class implements the TreeModel which is used to interact with javax's JTree
+ * for interactive displaying and editing of nodes and links
+ * This class bridges the gap between our `Graph` model to the JTree's model
+ */
 public class GraphTreeModel implements TreeModel {
 
     private Graph graph;
     private List<TreeModelListener> treeModelListeners = new ArrayList<>();
 
+    /**
+     * Construct the TreeModel to be used with a JTree
+     *
+     * @param graph The Graph structure to be displayed
+     */
     public GraphTreeModel(Graph graph) {
         this.graph = graph;
     }
 
+    /**
+     * Exposed structure of the an edge of the graph (See Graph)
+     * It will be displayed on the UI as a link
+     */
     public static class Edge {
         public final String srcNodeName;
         public final String destNodeName;
@@ -33,6 +46,10 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Exposed structure of the a node of the graph (See Graph)
+     * It will be displayed on the UI as a router
+     */
     public static class Node {
         public final String name;
         public final String[] edges;
@@ -48,6 +65,11 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * The root of the graph as required by JTree
+     * Stores all nodes in a graph for display
+     * The root itself will be hidden from the UI
+     */
     public static class Root {
         public final String[] nodes;
 
@@ -60,6 +82,8 @@ public class GraphTreeModel implements TreeModel {
             return "Topology";
         }
     }
+
+    /* The methods below will be invoked by JTree for tree display */
 
     @Override
     public Object getRoot() {
@@ -124,6 +148,17 @@ public class GraphTreeModel implements TreeModel {
         treeModelListeners.remove(l);
     }
 
+    /* The methods below can be used to modify the internal graph structure of the model.
+    * Modifying the internal graph structure without using the methods below will cause
+    * the JTree to not be updated automatically
+    * */
+
+    /**
+     * Adds a node to the internal graph structure
+     *
+     * @param node The name of the node
+     * @return true if successful, false if a node has already existed
+     */
     public boolean addNode(String node) {
         if (graph.addNode(node)) {
             onTreeStructuredChanged();
@@ -133,6 +168,12 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Removes a node from the internal graph structure
+     *
+     * @param node The name the node
+     * @return true if successful, false if the node does not exist
+     */
     public boolean removeNode(String node) {
         if (graph.removeNode(node)) {
             onTreeStructuredChanged();
@@ -142,6 +183,16 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Creates a link between two nodes in the internal graph structure
+     * Any existing link will be replaced with the specified distance
+     * The link is bidirectional
+     *
+     * @param nodeA First node
+     * @param nodeB Second node
+     * @param distance The distance of the nodes
+     * @return true if successful, false if either node does not exist
+     */
     public boolean addLink(String nodeA, String nodeB, int distance) {
         if (graph.setEdge(nodeA, nodeB, distance)) {
             onTreeStructuredChanged();
@@ -151,6 +202,14 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Remove a link between two nodes in the internal graph structure
+     * The link is bidirectional hence it will be removed from both ends
+     *
+     * @param nodeA First node
+     * @param nodeB Second node
+     * @return true if successful, false if either node does not exist
+     */
     public boolean removeLink(String nodeA, String nodeB) {
         if (graph.unsetEdge(nodeA, nodeB)) {
             onTreeStructuredChanged();
@@ -160,10 +219,23 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Check if a link exist between two nodes
+     *
+     * @param nodeA First node
+     * @param nodeB Second node
+     * @return true if the link exist, false otherwise
+     */
     public boolean hasLink(String nodeA, String nodeB) {
         return graph.hasEdge(nodeA, nodeB);
     }
 
+    /**
+     * Calls the internal graph structure to save a graph
+     *
+     * @param path The path to be saved
+     * @return true if successful
+     */
     public boolean saveFile(String path) {
         try {
             FileWriter writer = new FileWriter(path);
@@ -175,6 +247,12 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Calls the internal graph structure to load a graph
+     *
+     * @param path The path to the graph
+     * @return true if successful
+     */
     public boolean loadFile(String path) {
         try {
             graph = Graph.fromFile(path);
@@ -185,13 +263,17 @@ public class GraphTreeModel implements TreeModel {
         }
     }
 
+    /**
+     * Replace the internal graph structure with a blank one
+     */
     public void clearGraph() {
         graph = new Graph();
         onTreeStructuredChanged();
     }
 
     /**
-     * Never modify this graph structure
+     * Gets the internal graph structure
+     * It should never be modified
      *
      * @return The internal Graph structure
      */
