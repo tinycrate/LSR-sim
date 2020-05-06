@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class Graph {
 
-    private Map<String, Map<String, Integer>> nodes;
+    private final Map<String, Map<String, Integer>> nodes;
 
     /**
      * Initialize a new graph.
@@ -93,9 +93,9 @@ public class Graph {
     /**
      * Check if the edge exists.
      *
-     * @param nodeA
-     * @param nodeB
-     * @return
+     * @param nodeA A node
+     * @param nodeB Another node
+     * @return True if the two nodes has existing edge; otherwise false
      */
     public boolean hasEdge(String nodeA, String nodeB) {
         if (!hasNode(nodeA) || !hasNode(nodeB)) return false;
@@ -123,7 +123,7 @@ public class Graph {
      * @return A set of nodes.
      */
     public Set<String> getAllNodes() {
-        return new HashSet(nodes.keySet());
+        return new HashSet<>(nodes.keySet());
     }
 
     /**
@@ -134,21 +134,22 @@ public class Graph {
      */
     public Set<String> getEdgesOfNode(String node) {
         if (!hasNode(node)) return null;
-        return new HashSet(nodes.get(node).keySet());
+        return new HashSet<>(nodes.get(node).keySet());
     }
 
     /**
      * Turn the graph into String format.
      * Usually the graph will be in LSA format.
-     * @return
+     *
+     * @return A String in LSA format
      */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        for(String node: getAllNodes()) {
+        for (String node : getAllNodes()) {
             builder.append(node).append(": ");
-            for(String edge: getEdgesOfNode(node)) {
+            for (String edge : getEdgesOfNode(node)) {
                 builder.append(edge).append(':').append(getDistance(node, edge)).append(' ');
             }
             builder.append('\n');
@@ -163,7 +164,7 @@ public class Graph {
      * @param file file name
      * @return A new graph created from the file provided
      * @throws SecurityException Occurs when file do not have read permission
-     * @throws IOException Occurs when file not found / error occurs while reading / format error
+     * @throws IOException       Occurs when file not found / error occurs while reading / format error
      */
     public static Graph fromFile(String file) throws SecurityException, IOException {
         Graph graph = new Graph();
@@ -180,7 +181,7 @@ public class Graph {
 
             for (int i = 1; i < segment.length; i++) {
                 String[] link = segment[i].split(":");
-                if(link.length != 2) throw new IOException("The LSA graph does not have a correct format.");
+                if (link.length != 2) throw new IOException("The LSA graph does not have a correct format.");
 
                 graph.addNode(link[0]);
                 graph.setEdge(startNode, link[0], Integer.parseInt(link[1]));
