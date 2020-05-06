@@ -8,6 +8,9 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
+/**
+ * The main user interface of the application
+ */
 public class MainView extends JFrame {
 
     private JComboBox<String> sourceSelection;
@@ -28,25 +31,31 @@ public class MainView extends JFrame {
     private int computeStep = 0;
     private boolean computing = false;
 
+    /**
+     * Constructs the main user interface for the application
+     */
     public MainView() {
         super();
         setTitle("LSR Simulator");
+        setIcons();
+        addComponents();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
 
+    /**
+     * Display the user interface
+     */
+    public void init() {
+        setVisible(true);
+    }
+
+    private void setIcons() {
         Icon fileIcon = new ImageIcon(MainView.class.getResource("file.png"));
         Icon folderOpenIcon = new ImageIcon(MainView.class.getResource("folder_open.png"));
         Icon folderCloseIcon = new ImageIcon(MainView.class.getResource("folder_close.png"));
-
         UIManager.put("Tree.closedIcon", folderCloseIcon);
         UIManager.put("Tree.openIcon", folderOpenIcon);
         UIManager.put("Tree.leafIcon", fileIcon);
-
-        addComponents();
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-    }
-
-    public void init() {
-        setVisible(true);
     }
 
     private void addComponents() {
@@ -147,15 +156,6 @@ public class MainView extends JFrame {
         graphPanel.add(buttonPanel, BorderLayout.SOUTH);
         graphPanel.setPreferredSize(new Dimension(130, 300));
         return graphPanel;
-    }
-
-    private void restoreTreeExpansion() {
-        for (int i = 0; i < topologyTree.getRowCount(); i++) {
-            Object object = topologyTree.getPathForRow(i).getLastPathComponent();
-            if (object instanceof GraphTreeModel.Node && expandedNode.contains(((GraphTreeModel.Node) object).name)) {
-                topologyTree.expandRow(i);
-            }
-        }
     }
 
     private JPanel buildGraphOptionPanel() {
@@ -443,12 +443,6 @@ public class MainView extends JFrame {
         computing = enabled;
     }
 
-    private void refreshSourceSelection() {
-        sourceSelection.setModel(new DefaultComboBoxModel<>(
-                ((GraphTreeModel.Root) graphModel.getRoot()).nodes
-        ));
-    }
-
     private void onSingleStepClicked(ActionEvent e) {
         if (!computing) {
             if (!tryInitCompute()) return;
@@ -489,6 +483,25 @@ public class MainView extends JFrame {
         printFinalResult();
     }
 
+    private void onClearMsgClicked(ActionEvent actionEvent) {
+        statusArea.setText("");
+    }
+
+    private void refreshSourceSelection() {
+        sourceSelection.setModel(new DefaultComboBoxModel<>(
+                ((GraphTreeModel.Root) graphModel.getRoot()).nodes
+        ));
+    }
+
+    private void restoreTreeExpansion() {
+        for (int i = 0; i < topologyTree.getRowCount(); i++) {
+            Object object = topologyTree.getPathForRow(i).getLastPathComponent();
+            if (object instanceof GraphTreeModel.Node && expandedNode.contains(((GraphTreeModel.Node) object).name)) {
+                topologyTree.expandRow(i);
+            }
+        }
+    }
+
     private boolean tryInitCompute() {
         String sourceNode = (String) sourceSelection.getSelectedItem();
         boolean invalid = false;
@@ -511,10 +524,6 @@ public class MainView extends JFrame {
             return false;
         }
         return true;
-    }
-
-    private void onClearMsgClicked(ActionEvent actionEvent) {
-        statusArea.setText("");
     }
 
     private void printFinalResult() {
