@@ -19,10 +19,9 @@ public class GraphTreeModel implements TreeModel {
     /**
      * Construct the TreeModel to be used with a JTree
      *
-     * @param graph The Graph structure to be displayed
      */
-    public GraphTreeModel(Graph graph) {
-        this.graph = graph;
+    public GraphTreeModel() {
+        this.graph = new Graph();
     }
 
     /**
