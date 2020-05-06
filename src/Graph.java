@@ -138,20 +138,6 @@ public class Graph {
     }
 
     /**
-     * Get a set of isolated nodes with no edges linked to.
-     *
-     * @return A set of isolated nodes
-     */
-    public Set<String> getIsolatedNodes() {
-        Set<String> isoNodes = getAllNodes();
-        for(String node : nodes.keySet()) {
-            if(!nodes.get(node).isEmpty())
-                isoNodes.remove(node);
-        }
-        return isoNodes;
-    }
-
-    /**
      * Turn the graph into String format.
      * Usually the graph will be in LSA format.
      *

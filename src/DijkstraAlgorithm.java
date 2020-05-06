@@ -105,7 +105,6 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
             map.put(sourceNode, new NodePair(sourceNode, 0));
 
             visitedNodes = new HashSet<>();
-            visitedNodes.addAll(graph.getIsolatedNodes()); // Isolated nodes are useless in calculation
 
             currentNode = sourceNode;
         }
@@ -118,7 +117,7 @@ public class DijkstraAlgorithm implements Iterable<VisitedNodeInfo> {
          */
         @Override
         public boolean hasNext() {
-            return visitedNodes.size() != graph.getAllNodes().size();
+            return map.keySet().size() != visitedNodes.size();
         }
 
         /**
