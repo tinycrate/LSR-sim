@@ -237,7 +237,7 @@ public class MainView extends JFrame {
     }
 
     private void onSaveFileClicked(ActionEvent e) {
-        FileDialog fd = new FileDialog(this, "Save Game To...", FileDialog.SAVE);
+        FileDialog fd = new FileDialog(this, "Save File To...", FileDialog.SAVE);
         fd.setFile("myroute.lsa");
         fd.setVisible(true);
         String filename = fd.getFile();
