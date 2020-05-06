@@ -384,6 +384,7 @@ public class MainView extends JFrame {
     private void onResetClicked(ActionEvent e) {
         dijkstra = null;
         setComputing(false);
+        statusArea.setText(statusArea.getText() + "===== RESET ===== \n\n");
     }
 
     private void onLoadFileClicked(ActionEvent e) {
@@ -412,11 +413,13 @@ public class MainView extends JFrame {
             removeBtn.setEnabled(false);
             loadBtn.setEnabled(false);
             saveBtn.setEnabled(false);
+            sourceSelection.setEnabled(false);
         } else {
             topologyTree.clearSelection();
             loadBtn.setEnabled(true);
             saveBtn.setEnabled(true);
             addNodeBtn.setEnabled(true);
+            sourceSelection.setEnabled(true);
         }
         computing = enabled;
     }
@@ -498,6 +501,15 @@ public class MainView extends JFrame {
         status.append("  Summary Table  \n");
         status.append("=================\n");
         status.append(String.format("Source %s:\n", info.getSourceNode()));
+        for (String node : info.getAllVisitedNodes()) {
+            if (node.equals(info.getSourceNode())) continue;
+            status.append(String.format("    %s: Path: %s Cost: %d\n",
+                    node,
+                    String.join(" > ", info.getChain(node)),
+                    info.distance(node)
+            ));
+        }
+        status.append("\n");
         statusArea.setText(status.toString());
         if (computing) setComputing(false);
         JOptionPane.showMessageDialog(
