@@ -74,7 +74,7 @@ public class MainView extends JFrame {
         graphPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         /* The graph editor*/
-        graphModel = new GraphTreeModel(new Graph());
+        graphModel = new GraphTreeModel();
         topologyTree = new JTree(graphModel);
         topologyTree.setEditable(false);
         topologyTree.setRootVisible(false);
