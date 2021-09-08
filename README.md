@@ -1,5 +1,7 @@
 LSR-sim 
 -------
+This project was created in 2020 as a part of the assignment for a mobile computing and networking course. It provides a
+graphical user inteface for simulating the computation of the LSR Protocol with a graph of the user's choice.
 
 #### Simulator of Link State Routing (LSR) Protocol
 
